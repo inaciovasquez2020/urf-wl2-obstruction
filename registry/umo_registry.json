@@ -1,0 +1,29 @@
+[
+  {
+    "id": "UMO_CFI_PETERSEN_WL3_0001",
+    "class": "CFI",
+    "base_graph": "Petersen",
+    "graphs": [
+      "data/CFI_PETERSEN_0.edgelist",
+      "data/CFI_PETERSEN_1.edgelist"
+    ],
+    "method": "WL-3-sampled",
+    "parameters": {
+      "rounds": 2,
+      "Wsize": 20,
+      "Qsize": 600,
+      "seed": 0
+    },
+    "baselines_failed": [
+      "WL-1",
+      "WL-2"
+    ],
+    "result": "distinguished",
+    "evidence": [
+      "data/CFI_PETERSEN_0.wl3s.txt",
+      "data/CFI_PETERSEN_1.wl3s.txt"
+    ],
+    "script": "scripts/wl3_sampled.py",
+    "notes": "Sampled WL-3 distinguishes CFI(Petersen) variants with fixed seed."
+  }
+]
