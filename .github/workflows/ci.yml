@@ -1,0 +1,36 @@
+name: URF WL Obstruction CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python version
+        run: python3 --version
+
+      - name: Verify registry JSON
+        run: |
+          test -f registry/umo_registry.json
+          python3 - <<'EOF'
+          import json
+          with open("registry/umo_registry.json") as f:
+              data = json.load(f)
+          assert isinstance(data, list)
+          print("OK: registry is valid JSON list")
+          EOF
+
+      - name: WL-2 sanity (small graph)
+        run: |
+          python3 scripts/wl2_full.py data/WL2_C6.edgelist 3
+          python3 scripts/wl2_full.py data/WL2_2C3.edgelist 3
+
+      - name: WL-3 sampled sanity (fast parameters)
+        run: |
+          python3 scripts/wl3_sampled.py data/CFI_PETERSEN_0.edgelist 2 15 400 0
+          python3 scripts/wl3_sampled.py data/CFI_PETERSEN_1.edgelist 2 15 400 0
+
