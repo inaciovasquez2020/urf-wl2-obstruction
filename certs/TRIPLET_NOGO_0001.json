@@ -10,7 +10,7 @@
   },
   "artifacts": {
     "edgelist_path": "artifacts/Tn_gold.edgelist",
-    "edgelist_sha256": "SHA256_REPLACE_ME"
+"edgelist_sha256": "e3044b83575b856d40c52028937d2f48f80385c69847d40d4ee312fa54e46681"
   },
   "invariants": {
     "n": 4096,
