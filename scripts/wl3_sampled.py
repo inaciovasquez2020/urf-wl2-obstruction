@@ -20,25 +20,31 @@ from collections import Counter
 from pathlib import Path
 
 
-def read_edgelist(path: str):
-    edges = []
+def read_edgelist(path):
     nodes = set()
+    edges = []
+
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith("#"):
+            if not line:
                 continue
-            a, b = line.split()
-            u = int(a)
-            v = int(b)
-            if u == v:
+            if line.startswith("#"):
                 continue
-            nodes.add(u)
-            nodes.add(v)
-            edges.append((u, v))
-    nodes = sorted(nodes)
-    return nodes, edges
 
+            parts = line.split()
+            if len(parts) != 2:
+                continue  # ignore malformed / metadata lines
+
+            a, b = parts
+            a = int(a)
+            b = int(b)
+
+            nodes.add(a)
+            nodes.add(b)
+            edges.append((a, b))
+
+    return sorted(nodes), edges
 
 def build_adj(nodes, edges):
     idx = {v: i for i, v in enumerate(nodes)}
