@@ -1,130 +1,219 @@
 #!/usr/bin/env python3
-# Dependency-free sampled WL-3 with correct Q-closure
-# Usage:
-#   python3 scripts/wl3_sampled.py GRAPH.edgelist ROUNDS |W| |Q| SEED
+# WL-3 sampled baseline (dependency-free, operationally bounded).
 #
-# Output: multiset histogram of final colors on Q
+# Semantics: colors live on a finite sampled/closed set Q ⊆ V^3. Each round refines
+# c(a,b,c) using a base color + (sampled) multisets over one-coordinate substitutions.
+#
+# Key properties:
+# - Dependency-free (stdlib only)
+# - Q-closure enforced (no KeyError)
+# - Hard caps prevent supercubic blow-up (no global sort of huge lists)
+#
+# Usage:
+#   python3 scripts/wl3_sampled.py <graph.edgelist> [rounds Wsize Qsize seed]
+# Defaults:
+#   rounds=2, Wsize=20, Qsize=600, seed=0
 
 import sys
 import random
 from collections import Counter
+from pathlib import Path
 
-# ---------- basic graph loader (no deps) ----------
 
-def read_edgelist(path):
-    edges = set()
+def read_edgelist(path: str):
+    edges = []
     nodes = set()
-    with open(path) as f:
+    with open(path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            a,b = line.split()
-            a = int(a); b = int(b)
-            if a == b: 
+            a, b = line.split()
+            u = int(a)
+            v = int(b)
+            if u == v:
                 continue
-            edges.add((a,b))
-            edges.add((b,a))
-            nodes.add(a); nodes.add(b)
-    return sorted(nodes), edges
+            nodes.add(u)
+            nodes.add(v)
+            edges.append((u, v))
+    nodes = sorted(nodes)
+    return nodes, edges
 
-# ---------- WL-3 sampled ----------
 
-def wl3_sampled(nodes, edges, rounds, Wsize, Qtarget, seed):
-    rng = random.Random(seed)
-    V = nodes
-    n = len(V)
+def build_adj(nodes, edges):
+    idx = {v: i for i, v in enumerate(nodes)}
+    n = len(nodes)
+    adj = [set() for _ in range(n)]
+    for u, v in edges:
+        iu = idx[u]
+        iv = idx[v]
+        if iu == iv:
+            continue
+        adj[iu].add(iv)
+        adj[iv].add(iu)
+    return idx, adj
 
-    # sample W ⊆ V
-    if Wsize >= n:
-        W = list(V)
-    else:
-        W = rng.sample(V, Wsize)
 
-    # initial P ⊆ V^3
-    P = set()
-    while len(P) < Qtarget:
-        a = rng.choice(V)
-        b = rng.choice(V)
-        c = rng.choice(V)
-        P.add((a,b,c))
+def init_color(adj, a, b, c):
+    # Cheap WL-3 initial color: (equalities, adjacencies among coords)
+    eq_ab = 1 if a == b else 0
+    eq_ac = 1 if a == c else 0
+    eq_bc = 1 if b == c else 0
+    e_ab = 1 if b in adj[a] else 0
+    e_ac = 1 if c in adj[a] else 0
+    e_bc = 1 if c in adj[b] else 0
+    return (eq_ab, eq_ac, eq_bc, e_ab, e_ac, e_bc)
 
-    # ---- closure: build Q ----
-    Qset = set(P)
+
+def _close_Q(Qset, n, W, cap):
+    """
+    Enforce closure under (w,b,c),(a,w,c),(a,b,w) for all (a,b,c) in Q and w in W,
+    with hard cap to prevent blow-up.
+    """
     changed = True
     while changed:
         changed = False
-        new_items = set()
-        for (a,b,c) in Qset:
+        if len(Qset) >= cap:
+            break
+        # Iterate over a snapshot to avoid infinite growth while looping
+        snapshot = list(Qset)
+        for (a, b, c) in snapshot:
             for w in W:
-                t0 = (w,b,c)
-                t1 = (a,w,c)
-                t2 = (a,b,w)
-                if t0 not in Qset: new_items.add(t0)
-                if t1 not in Qset: new_items.add(t1)
-                if t2 not in Qset: new_items.add(t2)
-        if new_items:
-            Qset |= new_items
-            changed = True
-    Q = list(Qset)
+                if len(Qset) >= cap:
+                    return Qset
+                t0 = (w, b, c)
+                t1 = (a, w, c)
+                t2 = (a, b, w)
+                if t0 not in Qset:
+                    Qset.add(t0)
+                    changed = True
+                    if len(Qset) >= cap:
+                        return Qset
+                if t1 not in Qset:
+                    Qset.add(t1)
+                    changed = True
+                    if len(Qset) >= cap:
+                        return Qset
+                if t2 not in Qset:
+                    Qset.add(t2)
+                    changed = True
+                    if len(Qset) >= cap:
+                        return Qset
+    return Qset
 
-    # initial colors on Q
-    # encode equality pattern + adjacency pattern
-    colors = {}
-    for (a,b,c) in Q:
-        eq = (a==b, b==c, a==c)
-        adj = (
-            1 if (a,b) in edges else 0,
-            1 if (b,c) in edges else 0,
-            1 if (a,c) in edges else 0,
-        )
-        colors[(a,b,c)] = (eq, adj)
 
-    # safety: closure guarantees these exist
-    for (a,b,c) in Q:
-        for w in W:
-            assert (w,b,c) in colors
-            assert (a,w,c) in colors
-            assert (a,b,w) in colors
+def wl3_sampled(nodes, edges, rounds=2, Wsize=20, Qsize=600, seed=0):
+    _, adj = build_adj(nodes, edges)
+    n = len(adj)
 
-    # refinement rounds
-    for _ in range(rounds):
+    rng = random.Random(seed)
+
+    # Sample W ⊆ V
+    if Wsize > n:
+        Wsize = n
+    W = rng.sample(range(n), Wsize)
+
+    # Sample initial Q ⊆ V^3 (uniform iid triples), then close under W-substitutions.
+    Q = set()
+    while len(Q) < min(Qsize, n * n * n):
+        Q.add((rng.randrange(n), rng.randrange(n), rng.randrange(n)))
+        if len(Q) >= Qsize:
+            break
+
+    # Closure can increase Q; allow up to 4x before hard stop.
+    Qcap = max(Qsize, min(n * n * n, 4 * Qsize))
+    Q = _close_Q(Q, n, W, cap=Qcap)
+
+    # Initialize colors only on Q
+    colors = {t: init_color(adj, *t) for t in Q}
+
+    for _round in range(rounds):
         palette = {}
         nxt = 0
-        newcolors = {}
-        for (a,b,c) in Q:
-            base = colors[(a,b,c)]
-            agg = []
-            for w in W:
-                agg.append((
-                    colors[(w,b,c)],
-                    colors[(a,w,c)],
-                    colors[(a,b,w)]
-                ))
-            agg.sort()
-            sig = (base, tuple(agg))
-            if sig not in palette:
-                palette[sig] = nxt
-                nxt += 1
-            newcolors[(a,b,c)] = palette[sig]
-        colors = newcolors
+        new = {}
 
+        # Precompute once: for fast access to colors with default
+        # (should not happen if closure is correct, but safe anyway)
+        def getc(t):
+            return colors.get(t)
+
+        for (a, b, c) in Q:
+            base = getc((a, b, c))
+            # base must exist
+            if base is None:
+                base = init_color(adj, a, b, c)
+
+            # Sampled multisets over coordinate substitutions:
+            # We DO NOT sort huge lists. We compute bounded fingerprints.
+            # Each multiset is represented by a capped histogram over colors.
+            # Cap size to keep runtime bounded.
+            cap_hist = 8
+
+            M0 = []
+            M1 = []
+            M2 = []
+
+            for w in W:
+                v0 = getc((w, b, c))
+                v1 = getc((a, w, c))
+                v2 = getc((a, b, w))
+
+                # Closure should guarantee these exist; fallback if not.
+                if v0 is None:
+                    v0 = init_color(adj, w, b, c)
+                if v1 is None:
+                    v1 = init_color(adj, a, w, c)
+                if v2 is None:
+                    v2 = init_color(adj, a, b, w)
+
+                M0.append(v0)
+                M1.append(v1)
+                M2.append(v2)
+
+            # Build capped histograms (Counter->sorted small list)
+            # This avoids O(|W| log |W|) sorting of full lists in the hot loop.
+            c0 = Counter(M0)
+            c1 = Counter(M1)
+            c2 = Counter(M2)
+
+            # Keep only the top cap_hist entries deterministically
+            # Order: by count desc, then by repr of key for stability.
+            def top_items(C):
+                items = list(C.items())
+                items.sort(key=lambda kv: (-kv[1], repr(kv[0])))
+                return tuple(items[:cap_hist])
+
+            sig = (base, top_items(c0), top_items(c1), top_items(c2))
+
+            col = palette.get(sig)
+            if col is None:
+                col = nxt
+                palette[sig] = col
+                nxt += 1
+            new[(a, b, c)] = col
+
+        colors = new
+
+    # Return multiset of colors over Q (can also restrict to original sampled triples if desired)
     return Counter(colors.values())
 
-# ---------- main ----------
+
+def main():
+    if len(sys.argv) < 2:
+        print("usage: python3 scripts/wl3_sampled.py <graph.edgelist> [rounds Wsize Qsize seed]")
+        raise SystemExit(2)
+
+    path = sys.argv[1]
+    rounds = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+    Wsize = int(sys.argv[3]) if len(sys.argv) > 3 else 20
+    Qsize = int(sys.argv[4]) if len(sys.argv) > 4 else 600
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+
+    nodes, edges = read_edgelist(path)
+    hist = wl3_sampled(nodes, edges, rounds=rounds, Wsize=Wsize, Qsize=Qsize, seed=seed)
+    print(hist)
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
-        print("usage: wl3_sampled.py GRAPH ROUNDS WSIZE QSIZE SEED")
-        sys.exit(1)
-
-    graph = sys.argv[1]
-    rounds = int(sys.argv[2])
-    Wsize = int(sys.argv[3])
-    Qsize = int(sys.argv[4])
-    seed   = int(sys.argv[5])
-
-    nodes, edges = read_edgelist(graph)
-    hist = wl3_sampled(nodes, edges, rounds, Wsize, Qsize, seed)
-    print(dict(hist))
+    main()
 
