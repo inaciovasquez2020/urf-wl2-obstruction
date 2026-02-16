@@ -1,0 +1,20 @@
+# WL3 Sampled Obstruction (URF)
+
+Deterministic WL³-style sampling utility used in the URF WL²/WL³ obstruction experiments.
+
+## Purpose
+
+This script performs:
+1. Weisfeiler–Leman color refinement on a graph
+2. Random sampling of vertex triples (WL³-style signatures)
+3. **Collapsed histogram output** (presence-only, no multiplicities)
+
+It is designed to be **CI-safe**, **total**, and **format-robust**.
+
+---
+
+## Usage
+
+```bash
+python3 scripts/wl3_sampled.py <edgelist> <depth> <iters> <samples> <seed>
+
