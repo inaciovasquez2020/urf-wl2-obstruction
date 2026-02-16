@@ -1,0 +1,15 @@
+{
+  "schema_id": "urf:wl2-registry:1.0",
+  "updated_utc": "2026-02-15T00:00:00Z",
+  "items": [
+    {
+      "wl2_id": "WL2_C6_vs_2C3_0001",
+      "baseline": "WL-2",
+      "status": "minimal_demo",
+      "cert_path": "certs/WL2_C6_vs_2C3_CERT_0001.json",
+      "object_A_path": "data/WL2_C6.edgelist",
+      "object_B_path": "data/WL2_2C3.edgelist",
+      "evidence_paths": ["data/WL2_C6.wl2.txt", "data/WL2_2C3.wl2.txt"]
+    }
+  ]
+}

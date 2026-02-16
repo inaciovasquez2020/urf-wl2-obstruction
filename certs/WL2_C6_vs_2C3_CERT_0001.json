@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "schema_id": "urf:wl2-obstruction-cert:1.0",
+    "cert_id": "WL2_C6_vs_2C3_CERT_0001",
+    "created_utc": "2026-02-15T00:00:00Z",
+    "toolkit_version": "urf/1.x"
+  },
+  "objects": {
+    "A": {
+      "kind": "graph",
+      "label": "C6",
+      "size": { "n": 6, "m": 6 },
+      "path": "data/WL2_C6.edgelist",
+      "content_hash": "sha256:56aa84c438d202bc066a05c876b4c9888acc2e5d15ebaa65d26e10a04aac8585"
+    },
+    "B": {
+      "kind": "graph",
+      "label": "2C3",
+      "size": { "n": 6, "m": 6 },
+      "path": "data/WL2_2C3.edgelist",
+      "content_hash": "sha256:4684afe94c6d80eebfbcf40ad35363250fadf611dd6645180ac28d9e83d489ad"
+    }
+  },
+  "baseline": {
+    "family": "WL",
+    "version_pin": "WL-2 exact (scripts/wl2_full.py)",
+    "claim": "WL-2 distinguishes A from B."
+  },
+  "evidence": {
+    "result": "baseline_failed",
+    "repro_cmds": [
+      "python3 scripts/wl2_full.py data/WL2_C6.edgelist 5 > data/WL2_C6.wl2.txt",
+      "python3 scripts/wl2_full.py data/WL2_2C3.edgelist 5 > data/WL2_2C3.wl2.txt",
+      "diff data/WL2_C6.wl2.txt data/WL2_2C3.wl2.txt"
+    ],
+    "evidence_paths": [
+      "data/WL2_C6.wl2.txt",
+      "data/WL2_2C3.wl2.txt"
+    ]
+  },
+  "provenance": {
+    "git_commit": "7a5d53a",
+    "platform": "macos-arm64"
+  }
+}
