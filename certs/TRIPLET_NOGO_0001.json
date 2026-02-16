@@ -1,0 +1,42 @@
+{
+  "schema_version": "triplet/1.0",
+  "certificate_id": "TRIPLET_NOGO_0001",
+  "kind": "TRIPLET_NOGO",
+  "instance": {
+    "family": "Tn_signed_2lift",
+    "base_graph": "H4_cycle_plus_chord",
+    "seed": 1729,
+    "t": 10
+  },
+  "artifacts": {
+    "edgelist_path": "artifacts/Tn_gold.edgelist",
+    "edgelist_sha256": "SHA256_REPLACE_ME"
+  },
+  "invariants": {
+    "n": 4096,
+    "m": 5120,
+    "components": 1,
+    "cycle_rank": 1025
+  },
+  "thresholds": {
+    "tau_cycle_rank": 1024,
+    "holds": true
+  },
+  "claims": [
+    {
+      "name": "STRUCTURAL_TRIGGER",
+      "statement": "cycle_rank(T_n) >= floor(n/4)",
+      "status": "Verified"
+    },
+    {
+      "name": "NOGO_CONSEQUENCE",
+      "statement": "If OblivionAtom(k,Δ,R) holds for (k>=3, Δ=3, R=2), then any FO^k-admissible refinement algorithm A satisfies Cost_A(T_n) >= α n log2 n.",
+      "status": "Conditional",
+      "dependencies": [
+        "OblivionAtom(k,Δ,R)",
+        "AdmissibilitySpec(FO^k)"
+      ]
+    }
+  ]
+}
+
