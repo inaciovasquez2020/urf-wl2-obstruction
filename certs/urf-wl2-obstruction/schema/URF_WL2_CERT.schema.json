@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "URF WL2 Obstruction Certification",
+  "type": "object",
+  "required": [
+    "meta",
+    "mode",
+    "claim",
+    "objects",
+    "artifacts",
+    "constraints",
+    "non_claims"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schema_id", "cert_id", "created_utc"],
+      "properties": {
+        "schema_id": {
+          "const": "urf:wl2-obstruction-cert:1.0"
+        },
+        "cert_id": {
+          "type": "string",
+          "pattern": "^URF_WL2_CERT_(POS|NEG)_[0-9]{4}$"
+        },
+        "created_utc": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "mode": {
+      "enum": ["POSITIVE", "NEGATIVE"]
+    },
+    "claim": {
+      "type": "string"
+    },
+    "objects": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "constraints": {
+      "type": "object",
+      "required": ["capacity"],
+      "properties": {
+        "capacity": {
+          "type": "object",
+          "required": ["tokens", "time_sec", "memory_mb"],
+          "properties": {
+            "tokens": { "type": "integer", "minimum": 1 },
+            "time_sec": { "type": "integer", "minimum": 1 },
+            "memory_mb": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "non_claims": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

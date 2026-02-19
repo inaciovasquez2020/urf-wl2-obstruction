@@ -18,3 +18,17 @@ It is designed to be **CI-safe**, **total**, and **format-robust**.
 ```bash
 python3 scripts/wl3_sampled.py <edgelist> <depth> <iters> <samples> <seed>
 
+
+URF–WL2 Certification (Released)
+
+This repository includes URF Certification Artifacts.
+
+A certification release is not a software release.
+It makes no performance guarantees, no completeness claims,
+and no implications beyond the explicitly stated boundaries.
+
+Certification artifacts are declarative, cryptographically signed,
+immutable, and inert with respect to CI and runtime behavior.
+
+Claims are valid only under stated constraints.
+All non-claims are explicitly listed in the certification files.

@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "schema_id": "urf:wl2-obstruction-cert:1.0",
+    "cert_id": "URF_WL2_CERT_POS_0001",
+    "created_utc": "2026-02-19T00:00:00Z"
+  },
+  "mode": "POSITIVE",
+  "claim": "There exist bounded-degree graph families that are indistinguishable by WL2, establishing a WL2 locality obstruction within the URF framework.",
+  "objects": {
+    "family": "WL2 obstruction constructions",
+    "reference_docs": [
+      "docs/oblivion_slice_k3_d3_r2.md"
+    ]
+  },
+  "artifacts": {
+    "formal_notes": "docs/oblivion_slice_k3_d3_r2.md"
+  },
+  "constraints": {
+    "capacity": {
+      "tokens": 200000,
+      "time_sec": 600,
+      "memory_mb": 4096
+    }
+  },
+  "non_claims": [
+    "No separation beyond WL2",
+    "No claim about WL3 or FO^3",
+    "No complexity-theoretic lower bounds",
+    "No resolution of P versus NP"
+  ]
+}
