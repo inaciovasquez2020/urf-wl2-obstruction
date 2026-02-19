@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "schema_id": "urf:wl2-obstruction-cert:1.0",
+    "cert_id": "URF_WL2_CERT_NEG_0001",
+    "created_utc": "2026-02-19T00:00:00Z"
+  },
+  "mode": "NEGATIVE",
+  "claim": "WL2 does not distinguish all non-isomorphic bounded-degree graphs; explicit counterexamples exist.",
+  "objects": {
+    "example_pair": "C6 vs 2C3",
+    "description": "Two non-isomorphic graphs with identical WL2 refinement profiles."
+  },
+  "artifacts": {
+    "graph_A": "data/WL2_C6.edgelist",
+    "graph_B": "data/WL2_2C3.edgelist"
+  },
+  "constraints": {
+    "capacity": {
+      "tokens": 50000,
+      "time_sec": 120,
+      "memory_mb": 1024
+    }
+  },
+  "non_claims": [
+    "No higher-dimensional WL obstruction implied",
+    "No classification of all WL2 counterexamples",
+    "No algorithmic hardness claims"
+  ]
+}
