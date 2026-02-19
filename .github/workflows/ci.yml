@@ -2,9 +2,17 @@ name: WL Obstruction CI
 
 on:
   push:
-    branches: [ main ]
+    paths:
+      - "**/*.py"
+      - "scripts/**"
+      - "data/**"
+      - ".github/workflows/ci.yml"
   pull_request:
-    branches: [ main ]
+    paths:
+      - "**/*.py"
+      - "scripts/**"
+      - "data/**"
+      - ".github/workflows/ci.yml"
 
 jobs:
   wl:
@@ -36,4 +44,3 @@ jobs:
           python3 scripts/wl3_sampled.py data/CFI_PETERSEN_0.edgelist 2 15 400 0 > /tmp/wl3_a.txt
           python3 scripts/wl3_sampled.py data/CFI_PETERSEN_1.edgelist 2 15 400 0 > /tmp/wl3_b.txt
           diff /tmp/wl3_a.txt /tmp/wl3_b.txt
-
